@@ -18,8 +18,14 @@
 
 ### Colab environemt
 This fork includes a notebook to run these scripts in the colab environment.
+
+
 Requirements:
+
    - Have a Google account
+   - Have a telegram account
+   - Create an App in Telegram https://my.telegram.org/auth?to=apps and follow the steps to obtain the Id and API KEY
+   - Fill the telegram-tracker configuration file (config/config.ini) with the App data
    - Upload the repository to drive
    - Open telegram-tracker.ipynb in the colab environment (clicking on the notebook will open it in the environment)
 
