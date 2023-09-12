@@ -16,6 +16,15 @@
 
 ## Overview
 
+### Colab environemt
+This fork includes a notebook to run these scripts in the colab environment.
+Requirements:
+   - Have a Google account
+   - Upload the repository to drive
+   - Open telegram-tracker.ipynb in the colab environment (clicking on the notebook will open it in the environment)
+The telegram-tracker.ipynb notebook will mount drive so that the scripts can be executed from there
+
+### Local enviroment
 This tool connects to Telegram's API. It generates JSON files containing channel's data, including channel's information and posts. You can search for a specific channel, or a set of channels provided in a text file (one channel per line.)
 
 Files are saved by default in a folder called *output/data*. These folders are created by the script. You can also give a specific output directory to store collected data.
