@@ -22,6 +22,7 @@ Requirements:
    - Have a Google account
    - Upload the repository to drive
    - Open telegram-tracker.ipynb in the colab environment (clicking on the notebook will open it in the environment)
+
 The telegram-tracker.ipynb notebook will mount drive so that the scripts can be executed from there
 
 ### Local enviroment
