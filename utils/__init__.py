@@ -5,6 +5,7 @@ import pandas as pd
 import asyncio
 import json
 import os
+import sys
 
 # import submodules
 from configparser import ConfigParser
@@ -58,21 +59,142 @@ def create_dirs(root, subfolders=None):
 	root = root if subfolders == None else f'{root}/{subfolders}/'
 	if not os.path.exists(root):
 		os.makedirs(f'{root}', exist_ok=True)
-	
+	print(f'created {root}')
 	return
+# Add by Congosto
+'''
+Access the context of the last message download to obtain only
+the new ones, if any.
+'''
+def get_last_download_context(file_context):
+	if os.path.exists(file_context):
+		download_context_df = pd.read_csv (file_context)
+		i = len(download_context_df)
+		last_msg = download_context_df['last_msg'][i-1]
+		num_msg = download_context_df['num_msg'][i-1]
+		print (f' get context: last_msg: {last_msg} , num_msg: {num_msg}')
+		return(last_msg,num_msg)
+	else:
+			return(0,0)
+def put_last_download_context(file_context,time_download,last_msg,num_msg):
+	print (f' put context: downloaded {num_msg} messages since message {last_msg}')
+	data_context= {'time_download': [time_download],
+								 'last_msg' : [last_msg],
+								 'num_msg' : [num_msg]}
+								
 
-# Get user-console request
-def cmd_request_type(args):
-	'''
-	'''
-	tm_channel = args['telegram_channel']
-	batch_file = args['batch_file']
+	data_context_df = pd.DataFrame.from_dict(data_context)
+	data_context_df.to_csv(
+		file_context,
+		encoding='utf-8',
+		mode='a',
+		index=False,
+		header=not os.path.isfile(file_context)
+	)
+# Add by Congosto
+'''
+Save found channels
+'''
 
-	req_type = 'channel' if tm_channel != None else 'batch'
-	req_input = tm_channel if tm_channel != None else batch_file
+def store_channels_download(file_collected_channels,channel,output_folder):
+	if os.path.exists(file_collected_channels):
+		collected_channels_df = pd.read_csv(file_collected_channels,
+													dtype={'channel': str, 'nun_datsets': int, 'datasets': str})
+		#print(f'---> collected_channels_df {collected_channels_df}')
+		if channel in collected_channels_df['channel'].values:
+			#print(f'--->Detectado canal {channel}')
+			channel_df = collected_channels_df.loc[collected_channels_df['channel'] == channel]
+			channel_df.reset_index(inplace = True)
+			#print(f'--->channel_df {channel_df}')
+			#print(type(channel_df['datasets']))
+			datasets = str(channel_df['datasets'][0])
+			#print(f'--->datasets {datasets}')
+			list_datasets = str(channel_df['datasets'][0]).split('-')
+			#print(f'--->list_datasets {list_datasets}')
+			if output_folder not in list_datasets:
+				print(f'---> add new dataset to {output_folder}')
+				num_datasets = int(channel_df['num_datasets'][0])
+				num_datasets = round (num_datasets + 1, 0)
+				datasets = (f'{datasets}-{output_folder}')
+				collected_channels_df.loc[collected_channels_df['channel'] == channel, 'num_datasets'] = num_datasets
+				collected_channels_df.loc[collected_channels_df['channel'] == channel, 'datasets'] = datasets
+			else:
+				pass
+				#collected_channels_df.reset_index(inplace=True)
+		else:
+			new_row = {'channel': [channel],
+								'num_datasets' : 1,
+								'datasets' : output_folder
+								}
+			new_row_df = pd.DataFrame.from_dict(new_row)
+			collected_channels_df = pd.concat([collected_channels_df, new_row_df], ignore_index=True)
+	else:
+		new_row = {'channel': [channel],
+							 'num_datasets' : 1,
+							 'datasets' : output_folder
+							}
+		collected_channels_df = pd.DataFrame.from_dict(new_row)
 
-	return req_type, req_input
+	collected_channels_df.to_csv(
+		file_collected_channels,
+		encoding='utf-8',
+		mode='w',
+		index=False
+		)
+	return 
+def store_channels_related(file_related_channels,channels,output_folder):
 
+	if os.path.exists(file_related_channels):
+		exist_file_channels_related = True
+		related_channels_df = pd.read_csv(file_related_channels,
+													dtype={'channel': str, 'nun_datsets': int, 'datasets': str})
+	else:
+		exist_file_channels_related = False
+	for channel in channels:
+		if exist_file_channels_related:
+			#print(f'---> related_channels_df {related_channels_df}')
+			if channel in related_channels_df['channel'].values:
+				#print(f'--->Detectado canal {channel}')
+				channel_df = related_channels_df.loc[related_channels_df['channel'] == channel]
+				channel_df.reset_index(inplace = True)
+				#print(f'--->channel_df {channel_df}')
+				#print(type(channel_df['datasets']))
+				datasets = str(channel_df['datasets'][0])
+				#print(f'--->datasets {datasets}')
+				list_datasets = str(channel_df['datasets'][0]).split('-')
+				#print(f'--->list_datasets {list_datasets}')
+				if output_folder not in list_datasets:
+					#print(f'---> add new dataset to {output_folder}')
+					num_datasets = int(channel_df['num_datasets'][0])
+					num_datasets = round (num_datasets + 1, 0)
+					datasets = (f'{datasets}-{output_folder}')
+					related_channels_df.loc[related_channels_df['channel'] == channel, 'num_datasets'] = num_datasets
+					related_channels_df.loc[related_channels_df['channel'] == channel, 'datasets'] = datasets
+				else:
+						pass
+					#related_channels_df.reset_index(inplace=True)
+			else:
+				new_row = {'channel': [channel],
+								'num_datasets' : 1,
+								'datasets' : output_folder
+								}
+				new_row_df = pd.DataFrame.from_dict(new_row)
+				related_channels_df = pd.concat([related_channels_df, new_row_df], ignore_index=True)
+		else:
+			new_row = {'channel': [channel],
+								 'num_datasets' : 1,
+								  'datasets' : output_folder
+							}
+			related_channels_df = pd.DataFrame.from_dict(new_row)
+			exist_file_channels_related = True
+	related_channels_df.to_csv(
+		file_related_channels,
+		encoding='utf-8',
+		mode='w',
+		index=False
+	)
+	return 
+	
 # Process collected chats
 def process_participants_count(client, channel_id):
 	'''
@@ -145,7 +267,6 @@ def write_collected_chats(
 
 						channel_request = channel_request.to_dict()
 						collected_chats = channel_request['chats']
-					
 						for ch in collected_chats:
 							if ch['id'] == channel_request['full_chat']['id']:
 								ch['participants_count'] = \
@@ -198,6 +319,7 @@ def write_collected_chats(
 		except KeyError:
 			pass
 
+
 	df = pd.DataFrame(metadata)
 	csv_path = f'{output_folder}/collected_chats.csv'
 	df.to_csv(
@@ -215,10 +337,12 @@ def timestamp_attrs(data, col='date'):
 	'''
 	'''
 	# process dates
+	# Change by Congosto
 	t = pd.to_datetime(
 		data[col],
-		infer_datetime_format=True,
-		yearfirst=True
+		#infer_datetime_format=True,    
+		#yearfirst=True
+		format = '%Y-%m-%d %H:%M:%S+00:00'
 	)
 
 	# timestamp attributes
@@ -239,6 +363,7 @@ def timestamp_attrs(data, col='date'):
 def clean_msg(text):
 	'''
 	'''
+	#text = text.replace("\r\n", " ")
 	return ' '.join(text.split()).strip()
 
 # Message attributes
@@ -309,10 +434,12 @@ def get_forward_attrs(msg, res, channels_data):
 		channel_name = None
 
 	# process dates
+	# Change by Congosto
 	t = pd.to_datetime(
 		date,
-		infer_datetime_format=True,
-		yearfirst=True
+		#infer_datetime_format=True,    
+		#yearfirst=True
+		format = '%Y-%m-%d %H:%M:%S+00:00'
 	)
 
 	date = t.strftime('%Y-%m-%d %H:%M:%S')
