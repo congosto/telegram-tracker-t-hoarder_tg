@@ -133,10 +133,9 @@ This Python script will connect to Telegram's API and handle your API request.
 ### Options
 
 -   `--telegram-channel` Specifies Telegram Channel to download data from.
--   `--batch-file` File containing Telegram Channels to download data from, one channel per line.
 -   `--limit-download-to-channel-metadata` Will collect channels metadata only, not channel's messages. (default = False)
 -   `--output, -o` Specifies a folder to save collected data. If not given, script will generate a default folder called `./output/data`
--   `--min-id` Specifies the offset id. This will update Telegram data with new posts.
+
 
 <br />
 
