@@ -1,6 +1,5 @@
 <div align="center">
-
-# **Telegram-API**: `a Python-based open-source tool for Telegram`
+# **telegram-tracker-t-hoarder_tg**: `a Python-based open-source tool for Telegram`(fork de Telegram-tracker)
 
 ---
 
@@ -12,80 +11,105 @@
 [![Twitter estebanpdl](https://badgen.net/badge/icon/twitter?icon=twitter&label)](https://twitter.com/estebanpdl)
 
 ---
+
 </div>
 
 ## Overview
 
-### Colab environemt
-This fork includes a notebook to run these scripts in the colab environment.
+### About this version of Telegram-tracker
 
+**telegram-tracker** is an excellent implementation for extracting information from Telegram channels. However, it does not retain context of what has been downloaded, which makes it challenging to automatically update channels with the latest messages. The lack of context can lead to message repetitions if a channel is downloaded more than once.
+
+This version of telegram-tracker aims to download messages from Telegram channels and keep them updated with new messages, **avoiding duplicates**. To achieve this, it **maintains context** for each download by recording the date and time, the most recent message, and the total number of downloaded messages. It also stores context for all downloaded channels and their related channels.
+
+The safest procedure for downloading channels is to do it one by one:
+
+1.  Download the channel using the main.py command.
+
+2.  Convert the JSON messages from the channel to CSV using the build-dataset.py command.
+
+Usually, a download can take many hours or even days. If the scripts are interrupted, following this procedure ensures a safer restart, preventing the storage of repeated messages."
+
+### Changes introduced in this Telegram-tracker fork
+
+-   Fix a warning about using a deprecated parameter
+-   The **log_download.csv** file has been added to the JSON directory of each channel. For each download, the date of the download, the most recent message number, and the number of downloaded messages are stored in this file. This allows channels to be updated with the latest messages automatically without using the --min-id parameter, which has been removed.
+-   The file **related_channels.csv** with the names of the related channels has been added to the download directory
+-   In the root directory of the data, two files have been added:
+    -   **collected_channels_all.csv**: contains all the downloaded channels.
+    -   **related_channel_all.csv**: includes all channels related to the downloaded channels. These channels may appear in multiple datasets, which is why we also store the number of times they appear in other downloads and the directories where they can be found.
+-   The **--min-id parameter** has been removed as it is no longer necessary, given that updates with new messages are now automatic.
+-   The script **build-datasets.py**, which converted all JSON files to CSV, has been replaced by **build-dataset.py**, which only converts the JSON from a single channel to CSV.
+-   The **--batch-file** parameter has been removed to ensure that channels are downloaded one by one using **main.py**, and then the JSON files are converted to CSV using the **build-datasets.py** command. When you want to download a list of channels, you can do so using a shell script or the **telegram-tracker.ipynb** notebook included in this repository
+
+### Colab environemt
+
+This fork includes a notebook to run these scripts in the colab environment.
 
 Requirements:
 
-   - Have a Google account
-   - Have a Telegram account
-   - Create an App in Telegram https://my.telegram.org/auth?to=apps and follow the steps to obtain the Id and API KEY
-   - Fill the telegram-tracker configuration file (config/config.ini) with the App data
-   - Upload the repository to drive
-   - Open telegram-tracker.ipynb in the colab environment (clicking on the notebook will open it in the environment)
+-   Have a Google account
+-   Have a Telegram account
+-   Create an App in Telegram <https://my.telegram.org/auth?to=apps> and follow the steps to obtain the Id and API KEY
+-   Fill the telegram-tracker configuration file (config/config.ini) with the App data
+-   Upload the repository to drive
+-   Open telegram-tracker.ipynb in the colab environment (clicking on the notebook will open it in the environment)
 
-
-The telegram-tracker.ipynb notebook will mount drive so that the scripts can be executed from there
+The **telegram-tracker.ipynb** notebook will mount drive so that the scripts can be executed from there
 
 ### Local enviroment
+
 This tool connects to Telegram's API. It generates JSON files containing channel's data, including channel's information and posts. You can search for a specific channel, or a set of channels provided in a text file (one channel per line.)
 
 Files are saved by default in a folder called *output/data*. These folders are created by the script. You can also give a specific output directory to store collected data.
 
 **Software required**
 
-* [Python 3.x](https://www.python.org/)
-* [Telegram API credentials](https://my.telegram.org/auth?to=apps)
-	+ Telegram account
-	+ App `api_id`
-	+ App `api_hash`
+-   [Python 3.x](https://www.python.org/)
+-   [Telegram API credentials](https://my.telegram.org/auth?to=apps)
+    -   Telegram account
+    -   App `api_id`
+    -   App `api_hash`
 
 **Python required libraries**
 
-* [Telethon](https://docs.telethon.dev/en/stable/)
-* [Pandas](https://pandas.pydata.org/)
-* [Openpyxl](https://openpyxl.readthedocs.io/en/stable/)
-* [tqdm](https://tqdm.github.io/)
-* [Networkx](https://networkx.org/)
-* [Matplotlib](https://matplotlib.org/)
-* [Louvain Community Detection](https://github.com/taynaud/python-louvain)
+-   [Telethon](https://docs.telethon.dev/en/stable/)
+-   [Pandas](https://pandas.pydata.org/)
+-   [Openpyxl](https://openpyxl.readthedocs.io/en/stable/)
+-   [tqdm](https://tqdm.github.io/)
+-   [Networkx](https://networkx.org/)
+-   [Matplotlib](https://matplotlib.org/)
+-   [Louvain Community Detection](https://github.com/taynaud/python-louvain)
 
+## Installing
 
-Installing
-----------
+-   **Via git clone**
 
-- **Via git clone**
-
-```
-git clone https://github.com/estebanpdl/telegram-api.git
+```         
+https://github.com/congosto/telegram-tracker-t-hoarder_tg.git
 ```
 
 This will create a directory called `telegram-tracker` which contains the Python scripts. Cloning allows you to easily upgrade and switch between available releases.
 
-- **From the github download button**
+-   **From the github download button**
 
-Download the ZIP file from github and use your favorite zip utility to unpack the file `telegram-tracker.zip` on your preferred location.
+Download the ZIP file from github and use your favorite zip utility to unpack the file `telegram-tracker-t-hoarder_tg.zip` on your preferred location.
 
 **After cloning or downloding the repository, install the libraries from `requirements.txt`.**
 
-```
+```         
 pip install -r requirements.txt
 ```
 
 or
 
-```
+```         
 pip3 install -r requirements.txt
 ```
 
 **Once you obtain an API ID and API hash on my.telegram.org, populate the `config/config.ini` file with the described values.**
 
-```ini
+``` ini
 
 [Telegram API credentials]
 api_id = api_id
@@ -93,11 +117,11 @@ api_hash = api_hash
 phone = phone
 ```
 
-*Note: Your phone must be included to authenticate for the first time. Use the format +\<code>\<number> (e.g., +19876543210). Telegram API will send you a code via Telegram app that you will need to include.*
+*Note: Your phone must be included to authenticate for the first time. Use the format +\<code\>\<number\> (e.g., +19876543210). Telegram API will send you a code via Telegram app that you will need to include.*
 
 <br />
 
----
+------------------------------------------------------------------------
 
 # Example usage
 
@@ -107,29 +131,29 @@ This Python script will connect to Telegram's API and handle your API request.
 
 ### Options
 
-* `--telegram-channel` Specifies Telegram Channel to download data from.
-* `--batch-file` File containing Telegram Channels to download data from, one channel per line.
-* `--limit-download-to-channel-metadata` Will collect channels metadata only, not channel's messages. (default = False)
-* `--output, -o` Specifies a folder to save collected data. If not given, script will generate a default folder called `./output/data`
-* `--min-id` Specifies the offset id. This will update Telegram data with new posts.
+-   `--telegram-channel` Specifies Telegram Channel to download data from.
+-   `--batch-file` File containing Telegram Channels to download data from, one channel per line.
+-   `--limit-download-to-channel-metadata` Will collect channels metadata only, not channel's messages. (default = False)
+-   `--output, -o` Specifies a folder to save collected data. If not given, script will generate a default folder called `./output/data`
+-   `--min-id` Specifies the offset id. This will update Telegram data with new posts.
 
 <br />
 
 ### Structure of output data
 
-```
+```         
 ├──🗂 output
 |   └──🗂 data
-|   	└──🗂 <channel_name>
-|   		└──<channel_name>.json
-|   		└──<channel_name>_messages.json
-|   	└──chats.txt // TM channels, groups, or users' IDs found in data.
-|   	└──collected_chats.csv // TM channels or groups found in data (e.g., forwards)
-|   	└──collected_chats.xlsx // TM channels or groups found in data (e.g., forwards)
-|   	└──counter.csv // TM channels, groups or users found in data (e.g., forwards)
-|   	└──user_exceptions.txt // From collected_chats, these are mostly TM users' which 
-|									metadata was not possible to retrieve via the API
-|   	└──msgs_dataset.csv // Posts and messages from the requested channels
+|       └──🗂 <channel_name>
+|           └──<channel_name>.json
+|           └──<channel_name>_messages.json
+|       └──chats.txt // TM channels, groups, or users' IDs found in data.
+|       └──collected_chats.csv // TM channels or groups found in data (e.g., forwards)
+|       └──collected_chats.xlsx // TM channels or groups found in data (e.g., forwards)
+|       └──counter.csv // TM channels, groups or users found in data (e.g., forwards)
+|       └──user_exceptions.txt // From collected_chats, these are mostly TM users' which 
+|                                   metadata was not possible to retrieve via the API
+|       └──msgs_dataset.csv // Posts and messages from the requested channels
 ```
 
 <br />
@@ -140,39 +164,47 @@ This Python script will connect to Telegram's API and handle your API request.
 
 ### **Basic request**
 
-```
+```         
 python main.py --telegram-channel channelname`
 ```
 
 **Expected output**
 
-- Files of collected channels:
-	- chats.txt
-	- collected_chats.csv
-	- user_exceptions.txt
-	- counter.csv
-- A new folder: *<channel_name>* containing
-	- A JSON file containing channel's profile metadata
-	- A JSON file containing posts from the requested channel
+-   Files of collected channels:
+    -   chats.txt
+    -   collected_chats.csv
+    -   user_exceptions.txt
+    -   counter.csv
+    -   collected_chanels
+-   A new folder: <channel_name> containing
+    -   A JSON file containing channel's profile metadata
+    -   A JSON file containing posts from the requested channel
+    -   log_downloads.csv
 
 <br />
 
 ### **Request using a text file containing a set of channels**
 
-```
-python main.py --batch-file './path/to/channels_text_file.txt'
+Download the channels one by one with the same output directory
+
+```  
+for chanel in channels:
+   python main.py  --telegram-channel channel --output './path/to/channels'
+   build-datasets.py --telegram-channel channel --data-path './path/to/channels'
 ```
 
 **Expected output**
 
-- Files of collected channels:
-	- chats.txt
-	- collected_chats.csv
-	- user_exceptions.txt
-	- counter.csv
-- New folders - based on the number of requested channels: *<channel_name>* containing
-	- A JSON file containing channel's profile metadata
-	- A JSON file containing posts from the requested channel
+-   Files of collected channels:
+    -   chats.txt
+    -   collected_chats.csv
+    -   user_exceptions.txt
+    -   counter.csv
+    -   collected_chanels
+-   New folders - based on the number of requested channels: <channel_name> containing
+    -   A JSON file containing channel's profile metadata
+    -   A JSON file containing posts from the requested channel
+    -   log_downloads.csv
 
 These examples will retrieve all posts available through the API from the requested channel. If you want to collect channel's information only, without posts, you can run:
 
@@ -180,36 +212,32 @@ These examples will retrieve all posts available through the API from the reques
 
 ### **Limit download to channel's metadata only**
 
-```
+```         
 python main.py --telegram-channel channelname --limit-download-to-channel-metadata
-```
-
-or, using a set of telegram channels via a text file:
-
-```
-python main.py --batch-file './path/to/channels_text_file.txt' --limit-download-to-channel-metadata
 ```
 
 <br />
 
 ### **Updating channel's data**
 
-If you want to collect new messages from one channel, you need to identify the message ID from the last post. Once you identify the id, run:
+It is automatic because it has context
 
-```
-python main.py --telegram-channel channelname --min-id 12345
+```         
+python main.py --telegram-channel channelname --output './path/to/channels'
 ```
 
 **Expected output**
 
-- Files of collected channels:
-	- chats.txt
-	- collected_chats.csv
-	- user_exceptions.txt
-	- counter.csv
-- A new folder: *<channel_name>* containing
-	- A JSON file containing channel's profile metadata
-	- A JSON file containing posts from the requested channel
+-   Files of collected channels:
+    -   chats.txt
+    -   collected_chats.csv
+    -   user_exceptions.txt
+    -   counter.csv
+    -   collected_chanels
+-   A new folder: <channel_name> containing
+    -   A JSON file containing channel's profile metadata
+    -   A JSON file containing posts from the requested channel
+    -   log_downloads.csv
 
 <br />
 
@@ -217,7 +245,7 @@ python main.py --telegram-channel channelname --min-id 12345
 
 The script allows you to specify a specific output directory to save collected data. The sxcript will create those folders in case do not exist.
 
-```
+```         
 python main.py --telegram-channel channelname --output ./path/to/chosen/directory`
 ```
 
@@ -225,35 +253,35 @@ The expected output is the same a described above but data will be save using th
 
 <br />
 
----
+------------------------------------------------------------------------
 
-## `build-datasets.py`
+## `build-dataset.py`
 
-This Python script reads the collected files and creates a new dataset containing messages from the requested channels. By default, the created dataset will be located in the `output` folder.
+This Python script reads a channel the collected files and creates a new dataset containing messages from the requested channels. By default, the created dataset will be located in the `output` folder.
 
 If you provided a specific directory to save collected data, you need to provide the same path to use this script.
 
 ### Options
 
-* `--data-path` Path were data is located. Will use `./output/data` if not given.
+-   `-telegram-channel channel --data-path` Path were data is located. Will use `./output/data` if not given.
 
 If a specific directory was not provided in `main.py`, run:
 
-```
-python build-datasets.py
+```         
+python build-dataset.py
 ```
 
 If you provided a specific directory using the option `--output` in `main.py`, run:
 
-```
-python build-datasets.py --data-path ./path/to/chosen/directory
+```         
+python build-dataset.py --data-path ./path/to/chosen/directory
 ```
 
 These option will create the above-mentioned dataset: `msgs_dataset.csv`, a file containing posts and messages from the requested channels.
 
 <br />
 
----
+------------------------------------------------------------------------
 
 ## `channels-to-network.py`
 
@@ -261,16 +289,16 @@ This Python script builds a network graph. By default, the file will be located 
 
 ### Options
 
-* `--data-path` Path were data is located. Will use `./output/data` if not given.
+-   `--data-path` Path were data is located. Will use `./output/data` if not given.
 
 If a specific directory was not provided in `main.py`, run:
 
-```
+```         
 python channels-to-network.py
 ```
 
 If you provided a specific directory using the option `--output` in `main.py`, run:
 
-```
+```         
 python channels-to-network.py --data-path ./path/to/chosen/directory
 ```
