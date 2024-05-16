@@ -40,6 +40,18 @@ parser.add_argument(
 	help='Will collect channels metadata only, not posts data.'
 )
 
+# chaged by congosto
+'''
+
+max-msgs
+'''
+parser.add_argument(
+	'--max-msgs',
+	type=int,
+	required=False,
+	help='Maximum number of messages to download. Default: all messages'
+)
+
 '''
 
 Output
@@ -51,7 +63,6 @@ parser.add_argument(
 	required=False,
 	help='Folder to save collected data. Default: `./output/data`'
 )
-
 
 
 # parse arguments
@@ -107,6 +118,15 @@ client = loop.run_until_complete(
 
 # request type
 channel = args['telegram_channel']
+
+# chaged by congosto
+# reading | max-msgs
+if args['max_msgs']:
+	max_msgs = args['max_msgs']
+	limited_msgs = True
+else:
+	limited_msgs = False
+	max_msgs = 0  # not limitedf
 
 # reading | Creating an output folder
 if args['output']:
@@ -296,9 +316,11 @@ if entity_attrs:
 				get most recent msg and show post downloaded
 				'''
 				num_msgs = num_msgs + len(posts.messages)
-				if num_msgs% 5000 == 0:
+				if num_msgs % 5000 == 0:
 					print(f'{num_msgs} downloaded\r')
 					#print(f'\x1b[2K{num_msgs} downloaded', end='\r')
+				if limited_msgs & (num_msgs >= max_msgs):
+					break
 		# JsonEncoder
 		print('\n') # no quitar
 		data = JSONEncoder().encode(data)
