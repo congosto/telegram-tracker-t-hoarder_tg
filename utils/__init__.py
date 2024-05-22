@@ -33,6 +33,25 @@ def get_config_attrs():
 	# Telegram API credentials
 	attrs = config['Telegram API credentials']
 	return dict(attrs)
+'''
+manage context
+'''
+#add by congosto
+def log_management (log_file):
+	if os.path.exists(log_file):
+		df = pd.read_csv(
+		  log_file,
+		  encoding='utf-8'
+		)
+		list_downloaded = df[df['type'] == 'downloaded']['channel']
+		list_json_csv = df[df['type'] == 'json_csv']['channel']
+		f_log = open(log_file, 'a')
+	else:
+		f_log = open(log_file, 'a')
+		f_log.write('channel,type,date\n')
+		list_downloaded = pd.Series()
+		list_json_csv = pd.Series()
+	return(f_log,list_downloaded,list_json_csv)
 
 
 # event loop
