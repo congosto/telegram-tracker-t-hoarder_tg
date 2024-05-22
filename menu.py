@@ -9,12 +9,9 @@ from utils import (
 	log_management
 )
 if os.name == 'nt':
-	slash = '\\'
 	copy = 'copy'
 else:
-	slash = '/'
 	copy = 'cp'
-default_data =  f'.{slash}data'
 #defino argumentos de script
 '''
 Arguments
@@ -31,7 +28,7 @@ parser.add_argument(
 	'-o',
 	type=str,
 	required = False,
-	default = default_data,
+	default = './data',
 	help='Folder to save collected data. Default: `./data`'
 )
 '''
@@ -75,7 +72,7 @@ try:
 			'''
 		if option == 1:
 			channel = input ('Enter channel name: ')
-			path_channel = f'{data_path}{slash}{channel}'
+			path_channel = f'{data_path}/{channel}'
 			print(f'Output on {path_channel}')
 			print(f'Download channel {channel}')
 			os.system(f'python main.py --telegram-channel {channel} {limit} --output {path_channel}')
@@ -87,14 +84,17 @@ try:
 		'''
 		if option == 2:
 			root_channel = input ('root channel (must have been downloaded before): ')
-			path_channel = f'{data_path}{slash}{root_channel}'
-			if not os.path.exists(path_channel):
+			path_channel = f'{data_path}/{root_channel}'
+			path_channel_nor = os.path.normpath(path_channel)
+			path_channel_n2 = f'{data_path}/{root_channel}_n2'
+			path_channel_n2_nor = os.path.normpath(path_channel_n2)
+			related_channels_nor = os.path.normpath(f'{path_channel}/related_channels.csv')
+			if not os.path.exists(related_channels_nor):
 				print(f'{root_channel} must have been downloaded before')
 			else:
-				path_channel_n2 = f'{data_path}{slash}{root_channel}_n2'
-				os.makedirs(path_channel_n2, exist_ok=True)
-				(f_log, list_downloaded, list_json_csv) = log_management(f'{path_channel_n2}{slash}{root_channel}_n2_log.csv')
-				with open(f'{path_channel}{slash}related_channels.csv', 'r') as inputfile:
+				os.makedirs(path_channel_n2_nor, exist_ok=True)
+				(f_log, list_downloaded, list_json_csv) = log_management(f'{path_channel_n2}/{root_channel}_n2_log.csv')
+				with open(related_channels_nor, 'r') as inputfile:
 					channels = inputfile.readlines()
 					num_channels = len (channels)
 					i = 0
@@ -122,14 +122,17 @@ try:
 			'''
 		if option == 3:
 			group = input ('Enter group name: ')
-			path_group = f'{data_path}{slash}{group}'
-			if not os.path.exists(f'{path_group}{slash}list_channels.csv'):
-				os.makedirs(path_group, exist_ok=True)
+			path_group = f'{data_path}/{group}'
+			path_group_nor = os.path.normpath(path_group)
+			file_list_channels_nor = os.path.normpath(f'{path_group}/list_channels.csv')
+			if not os.path.exists(file_list_channels_nor):
+				os.makedirs(path_group_nor, exist_ok=True)
 				group_file = input ('Enter channel group file name (one channel per line): ')
-				print (f' {copy} {group_file} {path_group}{slash}list_channels.csv')
-				os.system (f' {copy} {group_file} {path_group}{slash}list_channels.csv')
-			(f_log, list_downloaded, list_json_csv) = log_management(f'{path_group}{slash}{group}_log.csv')
-			with open(f'{path_group}/list_channels.csv', 'r') as inputfile:
+				group_file_nor = os.path.normpath(group_file)
+				print (f' {copy} {group_file_nor} {file_list_channels_nor}')
+				os.system (f' {copy} {group_file_nor} {file_list_channels_nor}')
+			(f_log, list_downloaded, list_json_csv) = log_management(f'{path_group}/{group}_log.csv')
+			with open(file_list_channels_nor, 'r') as inputfile:
 				channels = inputfile.readlines()
 			num_channels = len (channels)
 			i = 0

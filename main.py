@@ -71,14 +71,6 @@ config_attrs = get_config_attrs()
 
 args = {**args, **config_attrs}
 
-'''
-get operating system
-'''
-if os.name == 'nt':
-	slash = '\\'
-else:
-	slash = '/'
-default_data =  f'.{slash}data'
 # log results
 text = f'''
 Init program at {time.ctime()}
@@ -461,17 +453,14 @@ put_last_download_context(f'{output_folder}/{channel}/log_downloads.csv',time.ct
 '''
 Save collected_channel
 '''
-root_data = output_folder.split(slash)
-root_data = root_data[1]
-store_channels_download(f'./{root_data}/collected_channel_all.csv',channel,output_folder)
+
+store_channels_download(f'./{output_folder}/collected_channel_all.csv',channel,output_folder)
 # log results
 # changed by congosto
 '''
 Save related_channel
 '''
-root_data = output_folder.split(slash)
-root_data = root_data[1]
-store_channels_related(f'./{root_data}/related_channel_all.csv',users_names,output_folder)
+store_channels_related(f'./{output_folder}/related_channel_all.csv',users_names,output_folder)
 
 # log results
 text = f'End program at {time.ctime()}'
