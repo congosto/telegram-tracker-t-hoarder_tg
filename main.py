@@ -71,7 +71,14 @@ config_attrs = get_config_attrs()
 
 args = {**args, **config_attrs}
 
-
+'''
+get operating system
+'''
+if os.name == 'nt':
+	slash = '\\'
+else:
+	slash = '/'
+default_data =  f'.{slash}data'
 # log results
 text = f'''
 Init program at {time.ctime()}
@@ -316,9 +323,12 @@ if entity_attrs:
 				get most recent msg and show post downloaded
 				'''
 				num_msgs = num_msgs + len(posts.messages)
-				if num_msgs % 5000 == 0:
-					print(f'{num_msgs} downloaded\r')
-					#print(f'\x1b[2K{num_msgs} downloaded', end='\r')
+				if os.name == 'nt':
+					print(f'\x1b[2K{num_msgs} downloaded', end='\r')
+					#print(f'\x1b{num_msgs} downloaded', end='\r')
+				else:
+					if num_msgs % 5000 == 0:
+						print(f'{num_msgs} downloaded\r')
 				if limited_msgs & (num_msgs >= max_msgs):
 					break
 		# JsonEncoder
@@ -445,14 +455,13 @@ df.to_csv(
 Save downloaded context
 '''
 put_last_download_context(f'{output_folder}/{channel}/log_downloads.csv',time.ctime(),last_msg,num_msgs)
-# log results
-text = f'End program at {time.ctime()}'
+
 
 # changed by congosto
 '''
 Save collected_channel
 '''
-root_data = output_folder.split('/')
+root_data = output_folder.split(slash)
 root_data = root_data[1]
 store_channels_download(f'./{root_data}/collected_channel_all.csv',channel,output_folder)
 # log results
@@ -460,12 +469,11 @@ store_channels_download(f'./{root_data}/collected_channel_all.csv',channel,outpu
 '''
 Save related_channel
 '''
-root_data = output_folder.split('/')
+root_data = output_folder.split(slash)
 root_data = root_data[1]
 store_channels_related(f'./{root_data}/related_channel_all.csv',users_names,output_folder)
+
 # log results
 text = f'End program at {time.ctime()}'
-
-
 
 print (text)
