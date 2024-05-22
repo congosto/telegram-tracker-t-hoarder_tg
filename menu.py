@@ -47,6 +47,8 @@ exit = 'n'
 if args['max_msgs']:
 	max_msgs = args['max_msgs']
 	limit = f'--max-msgs {max_msgs}'
+else:
+	limit = ''
 	
 try:
 	while exit != 'y':
