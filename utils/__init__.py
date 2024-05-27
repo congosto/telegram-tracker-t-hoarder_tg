@@ -522,7 +522,10 @@ def get_url_attrs(media, res):
 
 				# title
 				url_title = media['webpage']['title']
-				url_description = media['webpage']['description']
+				if url_title != None:
+					url_title = clean_msg(url_title)
+				if url_description != None:
+					url_description = clean_msg(url_description)
 
 	res['has_url'] = has_url
 	res['url'] = url
