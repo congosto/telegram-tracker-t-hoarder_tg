@@ -82,10 +82,10 @@ data['replies_received'] = 0
 # Save dataset
 msgs_file_path = f'{main_path}/msgs_dataset.csv'
 msgs_data_columns = msgs_dataset_columns()
+f_log = open (f'{main_path}/log_flattened.csv','a')
 
 # JSON files
 for f in json_files:
-		
 	# add by congosto
 	'''
 	get context download
@@ -180,173 +180,177 @@ for f in json_files:
 	}
 
 	for idx, item in enumerate(messages):
-		'''
+		try:
+			'''
 
-		Iterate posts
-		'''
-		if item['_'] == 'Message':
-			# channel id
-			response['channel_id'] = item['peer_id']['channel_id']
+			Iterate posts
+			'''
+			if item['_'] == 'Message':
+				# channel id
+				response['channel_id'] = item['peer_id']['channel_id']
 
-			# message id
-			msg_id = item['id']
-			response['msg_id'] = msg_id
+				# message id
+				msg_id = item['id']
+				response['msg_id'] = msg_id
 
-			# add attrs
-			msg = clean_msg(item['message'])
-			response['message'] = msg
+				# add attrs
+				msg = clean_msg(item['message'])
+				response['message'] = msg
 
-			# clean message
-			response['cleaned_message'] = msg
+				# clean message
+				response['cleaned_message'] = msg
 
-			# timestamp
-			date = item['date']
-			response['date'] = date
+				# timestamp
+				date = item['date']
+				response['date'] = date
 
-			# signature and message link
-			response['signature'] = \
-				f'msg_iteration.{idx}.user.{username}.post.{msg_id}'
-			response['msg_link'] = f'https://t.me/{username}/{msg_id}'
+				# signature and message link
+				response['signature'] = \
+					f'msg_iteration.{idx}.user.{username}.post.{msg_id}'
+				response['msg_link'] = f'https://t.me/{username}/{msg_id}'
 
-			# check peer
-			response['msg_from_peer'] = None
-			response['msg_from_id'] = None
-			response = msg_attrs(item, response)
+				# check peer
+				response['msg_from_peer'] = None
+				response['msg_from_id'] = None
+				response = msg_attrs(item, response)
 
-			# reactions
-			response['views'] = 0 if item['views'] == None else item['views']
-			response['number_replies'] = \
-				item['replies']['replies'] if item['replies'] != None else 0
-			response['number_forwards'] = 0 if item['forwards'] == None \
-				else item['forwards']
+				# reactions
+				response['views'] = 0 if item['views'] == None else item['views']
+				response['number_replies'] = \
+					item['replies']['replies'] if item['replies'] != None else 0
+				response['number_forwards'] = 0 if item['forwards'] == None \
+						else item['forwards']
 
-			# Forward attrs
-			forward_attrs = item['fwd_from']
-			response['is_forward'] = 1 if forward_attrs != None else 0
+				# Forward attrs
+				forward_attrs = item['fwd_from']
+				response['is_forward'] = 1 if forward_attrs != None else 0
 
-			response['forward_msg_from_peer_type'] = None
-			response['forward_msg_from_peer_id'] = None
-			response['forward_msg_from_peer_name'] = None
-			response['forward_msg_date'] = None
-			response['forward_msg_date_string'] = None
-			response['forward_msg_link'] = None
-			if forward_attrs:
-				response = get_forward_attrs(
-					forward_attrs,
+				response['forward_msg_from_peer_type'] = None
+				response['forward_msg_from_peer_id'] = None
+				response['forward_msg_from_peer_name'] = None
+				response['forward_msg_date'] = None
+				response['forward_msg_date_string'] = None
+				response['forward_msg_link'] = None
+				if forward_attrs:
+					response = get_forward_attrs(
+						forward_attrs,
+						response,
+						data
+						)
+
+				# Reply attrs
+				response['is_reply'] = 0
+				response['reply_to_msg_id'] = None
+				response['reply_msg_link'] = None
+				response = get_reply_attrs(
+					item,
 					response,
-					data
-				)
+					username
+					)
 
-			# Reply attrs
-			response['is_reply'] = 0
-			response['reply_to_msg_id'] = None
-			response['reply_msg_link'] = None
-			response = get_reply_attrs(
-				item,
-				response,
-				username
-			)
+				# Media
+				response['contains_media'] = 1 if item['media'] != None else 0
+				if 'media' in item.keys():
+					response['media_type'] = None if item['media'] == None \
+						else item['media']['_']
 
-			# Media
-			response['contains_media'] = 1 if item['media'] != None else 0
-			if 'media' in item.keys():
-				response['media_type'] = None if item['media'] == None \
-					else item['media']['_']
+				# URLs -> Constructor MessageMediaWebPage
+				'''
+				Type WebPage
 
-			# URLs -> Constructor MessageMediaWebPage
-			'''
-			Type WebPage
+				Source: https://core.telegram.org/constructor/messageMediaWebPage
+				Telethon: https://tl.telethon.dev/constructors/web_page.html
+				'''
+				response = get_url_attrs(item['media'], response)
 
-			Source: https://core.telegram.org/constructor/messageMediaWebPage
-			Telethon: https://tl.telethon.dev/constructors/web_page.html
-			'''
-			response = get_url_attrs(item['media'], response)
+				# Media Document -> Constructor MessageMediaDocument
+				'''
+				Type Document
 
-			# Media Document -> Constructor MessageMediaDocument
-			'''
-			Type Document
+				Source: https://core.telegram.org/constructor/messageMediaDocument
+				Telethon: https://tl.telethon.dev/constructors/document.html
+				'''
+				response['document_type'] = None
+				response['document_id'] = None
+				response['document_video_duration'] = None
+				response['document_filename'] = None
 
-			Source: https://core.telegram.org/constructor/messageMediaDocument
-			Telethon: https://tl.telethon.dev/constructors/document.html
-			'''
-			response['document_type'] = None
-			response['document_id'] = None
-			response['document_video_duration'] = None
-			response['document_filename'] = None
-
-			response = get_document_attrs(item['media'], response)
+				response = get_document_attrs(item['media'], response)
 			
 
-			# Polls attrs
-			'''
+				# Polls attrs
+				'''
 
-			Type Poll
+				Type Poll
 
-			Source: https://core.telegram.org/constructor/messageMediaPoll
-			Telethon: https://tl.telethon.dev/constructors/poll.html
+				Source: https://core.telegram.org/constructor/messageMediaPoll
+				Telethon: https://tl.telethon.dev/constructors/poll.html
 
-			'''
-			response['poll_id'] = None
-			response['poll_question'] = None
-			response['poll_total_voters'] = None
-			response['poll_results'] = None
-			response = get_poll_attrs(item['media'], response)
+				'''
+				response['poll_id'] = None
+				response['poll_question'] = None
+				response['poll_total_voters'] = None
+				response['poll_results'] = None
+				response = get_poll_attrs(item['media'], response)
 
-			# Contact attrs
-			'''
+				# Contact attrs
+				'''
 
-			Type Contact
+				Type Contact
 
-			Source: https://core.telegram.org/constructor/messageMediaContact
-			Telethon: https://tl.telethon.dev/constructors/message_media_contact.html
-			'''
-			response['contact_phone_number'] = None
-			response['contact_name'] = None
-			response['contact_userid'] = None
-			response = get_contact_attrs(item['media'], response)
+				Source: https://core.telegram.org/constructor/messageMediaContact
+				Telethon: https://tl.telethon.dev/constructors/message_media_contact.html
+				'''
+				response['contact_phone_number'] = None
+				response['contact_name'] = None
+				response['contact_userid'] = None
+				response = get_contact_attrs(item['media'], response)
 
-			# Geo attrs
-			'''
+				# Geo attrs
+				'''
 
-			Type GeoPoint
+				Type GeoPoint
 
-			Source: https://core.telegram.org/constructor/messageMediaGeo
-			Telethon:
-			>	https://tl.telethon.dev/constructors/geo_point.html
-			>	https://tl.telethon.dev/constructors/message_media_venue.html
+				Source: https://core.telegram.org/constructor/messageMediaGeo
+				Telethon:
+					>	https://tl.telethon.dev/constructors/geo_point.html
+					>	https://tl.telethon.dev/constructors/message_media_venue.html
+					
+					'''
+				response['geo_type'] = None
+				response['lat'] = None
+				response['lng'] = None
+				response['venue_id'] = None
+				response['venue_type'] = None
+				response['venue_title'] = None
+				response['venue_address'] = None
+				response['venue_provider'] = None
+				response = get_geo_attrs(item['media'], response)
+
+				# create dataframe
+				res = [response]
+				df = pd.DataFrame.from_dict(res)
+
+				# order df msgs data columns
+				df = df[msgs_data_columns].copy()
 			
-			'''
-			response['geo_type'] = None
-			response['lat'] = None
-			response['lng'] = None
-			response['venue_id'] = None
-			response['venue_type'] = None
-			response['venue_title'] = None
-			response['venue_address'] = None
-			response['venue_provider'] = None
-			response = get_geo_attrs(item['media'], response)
-
-			# create dataframe
-			res = [response]
-			df = pd.DataFrame.from_dict(res)
-
-			# order df msgs data columns
-			df = df[msgs_data_columns].copy()
-			
-			# update CSV file
-			df.to_csv(
-				msgs_file_path,
-				encoding='utf-8',
-				header=not os.path.isfile(msgs_file_path),
-				index=False,
-				mode='a'
-			)
+				# update CSV file
+				df.to_csv(
+					msgs_file_path,
+					encoding='utf-8',
+					header=not os.path.isfile(msgs_file_path),
+					index=False,
+					mode='a'
+					)
 		
-		# Update pbar
-		pbar.update(1)
+			# Update pbar
+			pbar.update(1)
+		except:
+			f_log.write (f'Error {channel} msg {msg_id}\n')
 
 	# Close pbar connection
 	pbar.close()
+	f_log.close()
 
 	print ('-- END --')
 	print ('')
