@@ -10,6 +10,8 @@ import time
 import sys
 import os
 # import submodules
+from tqdm import tqdm
+# import submodules
 # import Telegram API submodules
 from api import *
 from utils import (
@@ -159,7 +161,7 @@ Channels are downloaded one by one
 '''
 get context download
 '''
-(start_msg,num_msgs) = get_last_download_context(f'{output_folder}/{channel}/log_downloads.csv')
+(start_msg,num_msgs_downloaded) = get_last_download_context(f'{output_folder}/{channel}/log_downloads.csv')
 
 '''
 
@@ -254,10 +256,14 @@ if entity_attrs:
 		'''
 		get most recent msg 
 		'''
+		pbar_flag = False
 		if len(posts.messages) > 0:
 			offset_id = min([i['id'] for i in data['messages']])
 			last_msg = data['messages'][0]['id']
 			num_msgs = len(posts.messages)
+			pbar = tqdm(total=last_msg - start_msg)
+			pbar.set_description(f'Downloading posts')
+			pbar_flag = True
 		# Get offset ID | Get messages
 		while len(posts.messages) > 0:
 
@@ -314,17 +320,20 @@ if entity_attrs:
 				'''
 				get most recent msg and show post downloaded
 				'''
-				num_msgs = num_msgs + len(posts.messages)
-				if os.name == 'nt':
-					print(f'\x1b[2K{num_msgs} downloaded', end='\r')
-					#print(f'\x1b{num_msgs} downloaded', end='\r')
-				else:
-					if num_msgs % 5000 == 0:
-						print(f'{num_msgs} downloaded\r')
+				#num_msgs = num_msgs + len(posts.messages)
+				#if os.name == 'nt':
+				#	print(f'\x1b[2K{num_msgs} downloaded', end='\r')
+				#	#print(f'\x1b{num_msgs} downloaded', end='\r')
+				#else:
+				#	if num_msgs % 5000 == 0:
+				#		print(f'{num_msgs} downloaded\r')
+				pbar.update(len(posts.messages))
 				if limited_msgs & (num_msgs >= max_msgs):
 					break
 		# JsonEncoder
-		print('\n') # no quitar
+		# Close pbar connection
+		if pbar_flag:
+			pbar.close()
 		data = JSONEncoder().encode(data)
 		data = json.loads(data)
 
