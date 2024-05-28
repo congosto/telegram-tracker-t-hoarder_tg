@@ -295,7 +295,8 @@ def write_collected_chats(
 								try:
 									ch['participants_count'] = \
 										process_participants_count(client, ch_id)
-								except TypeError:
+								#except TypeError:
+								except:
 									ch['participants_count'] = 0
 
 								# write new id
