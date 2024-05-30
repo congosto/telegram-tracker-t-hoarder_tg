@@ -27,6 +27,7 @@ Usually, a download can take many hours or even days. If the scripts are interru
 ### Changes introduced in this Telegram-tracker fork
 
 -   **Corrections/changes**:
+
     -   Fix a warning about using a deprecated parameter
     -   Fixed some download errors with exceptions
     -   Added a **download progress bar**. Some channels can have millions of messages and it was not known how much was left to download. This progress bar takes as the number of messages the number of the last published message (the message ids are consecutive numbers starting from 1). The channel may have deleted messages, the download percentage will rarely reach 100%, but it gives an idea of ​​the percentage of deleted messages
@@ -35,14 +36,23 @@ Usually, a download can take many hours or even days. If the scripts are interru
     -   The **--batch-file** parameter has been removed to ensure that channels are downloaded one by one using **main.py**, and then the JSON files are converted to CSV using the **build-datasets.py** command. When you want to download a list of channels, you can do so using:
         -   A shell script **menu.py**
         -   The **telegram-tracker.ipynb** notebook included in this repository, prepared to be used in **Google's Colab environment**
+
 -   **Added context**:
+
     -   The file **related_channels.csv** with the names of the related channels has been added to the download directory
-    -   The **log_download.csv** file has been added to the JSON directory of each channel. For each download, the date of the download, the most recent message number, and the number of downloaded messages are stored in this file. This allows channels to be updated with the latest messages automatically without using the **--min-id** parameter, which has been removed.
+    -   The **log_download.csv** file has been added to the JSON directory of each channel. For each download, the date of the download, the most recent message number, and the number of downloaded messages are stored in this file. This allows channels to be updated with the latest messages automatically without using the **--min-id** parameter, which has been removed
     -   For **snowball downloading**, context is saved in a file **{channel}\_n2_log.csv** with the operations carried out by the channels in order to resume the download at the point it left off after an interruption
     -   To **download a group** of channels, context is saved in a file **{group}\_log.csv** with the operations carried out by the channels in order to resume the download at the point it left off after an interruption
     -   In the root directory of the data, two files have been added:
-        -   **collected_channels_all.csv**: contains all the downloaded channels.
+        -   **collected_channels_all.csv**: contains all the downloaded channels
         -   **related_channel_all.csv**: includes all channels related to the downloaded channels. These channels may appear in multiple datasets, which is why we also store the number of times they appear in other downloads and the directories where they can be found.
+
+-   **Limitations**: There are two types of channels:
+
+    -   **Broadcasts** that publish and do not allow comments. It only has one owner
+    -   **Chat channels** allow conversations and usually have several administrators
+
+    Chat channels can have millions of messages and downloading them requires a lot of memory resources. The colab environment is memory limited, so only the last 400,000 messages are downloaded. In a local environment, it depends on the capacity of the computer from which the download is made.
 
 ### Colab environemt
 
