@@ -1,91 +1,310 @@
-## Motivación
+::: {align="center"}
+# **telegram-tracker-t-hoarder_tg**: `a Python-based open-source tool for Telegram`(fork de Telegram-tracker)
 
-Este repositorio se ha generado para hacer llegar a los investigadores unas herramientas que les permitan analizar información de **Telegram** sin que tengan que tener conocimientos de programación. Estas herramientas están en la línea de t-hoarder-R.
+------------------------------------------------------------------------
 
-Este conjunto de herramientas están programadas en R, en formato **notebook**, que combina código R con texto enriquecido (Markdown). Esto permite una documentación más legible de los pasos a seguir. Se pueden ejecutar desde **RStudio** que es una aplicación de escritorio disponible para Windows, linux y Mac. Están pensados para que se ejecuten de una vez (opción run all) pero pueden ejecutarse paso a paso. Se aconseja ejecutarlos en Rstudio en modo **visual** (pestaña de la ventana de código) para que sea más legible.
+[![GitHub forks](https://img.shields.io/github/forks/estebanpdl/telegram-tracker.svg?style=social&label=Fork&maxAge=2592000)](https://GitHub.com/estebanpdl/telegram-tracker/network/) [![GitHub stars](https://img.shields.io/github/stars/estebanpdl/telegram-tracker?style=social)](https://github.com/estebanpdl/telegram-tracker/stargazers) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/estebanpdl/telegram-tracker/blob/main/LICENCE) [![Open Source](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://twitter.com/estebanpdl) [![Made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/) [![Twitter estebanpdl](https://badgen.net/badge/icon/twitter?icon=twitter&label)](https://twitter.com/estebanpdl)
 
-El paso de parámetros se realiza en la primera casilla del cuaderno. Podría haber creado una aplicación interactiva con Shiny pero implicaría una configuración más compleja de las herramientas. En este momento me ha parecido lo más razonable y al alcance de todo el mundo organizarlo en **notebook** con la esperanza de que usándose, se despierte la curiosidad por R y algunos se animen a hacer sus pinitos.
+------------------------------------------------------------------------
+:::
 
-## Entorno de trabajo
+## Overview
 
-Estos **notebooks** trabajan con esta estructura de directorios prefijada.
+### About this version of Telegram-tracker
 
-Los cuadernos para acceder a los datos (data) y las claves (keys) lo hacen de manera relativa al directorio dónde está el cuaderno. Aunque está configurado que el directorio de trabajo sea el del cuaderno, no siempre funciona. En el caso de que no encuentre los datos se debe configurar "Session / Set Working Directory / To Source File Location".
+**telegram-tracker** is an excellent implementation for extracting information from Telegram channels. However, it does not retain context of what has been downloaded, which makes it challenging to automatically update channels with the latest messages. The lack of context can lead to message repetitions if a channel is downloaded more than once.
+
+This version of telegram-tracker aims to download messages from Telegram channels and keep them updated with new messages, **avoiding duplicates**. To achieve this, it **maintains context** for each download by recording the date and time, the most recent message, and the total number of downloaded messages. It also stores context for all downloaded channels and their related channels.
+
+The safest procedure for downloading channels is to do it one by one:
+
+1.  Download the channel using the main.py command.
+
+2.  Convert the JSON messages from the channel to CSV using the build-dataset.py command.
+
+Usually, a download can take many hours or even days. If the scripts are interrupted, following this procedure ensures a safer restart, preventing the storage of repeated messages."
+
+### Changes introduced in this Telegram-tracker fork
+
+-   **Corrections/changes**:
+    -   Fix a warning about using a deprecated parameter
+    -   Fixed some download errors with exceptions
+    -   Added a **download progress bar**. Some channels can have millions of messages and it was not known how much was left to download. This progress bar takes as the number of messages the number of the last published message (the message ids are consecutive numbers starting from 1). The channel may have deleted messages, the download percentage will rarely reach 100%, but it gives an idea of â€‹â€‹the percentage of deleted messages
+    -   The script **build-datasets.py**, which converted all JSON files to CSV, has been replaced by **build-dataset.py**, which only converts the JSON from a single channel to CSV. Added exception handling in the script
+    -   The **--min-id parameter** has been removed as it is no longer necessary, given that updates with new messages are now automatic.
+    -   The **--batch-file** parameter has been removed to ensure that channels are downloaded one by one using **main.py**, and then the JSON files are converted to CSV using the **build-datasets.py** command. When you want to download a list of channels, you can do so using:
+        -   A shell script **menu.py**
+        -   The **telegram-tracker.ipynb** notebook included in this repository, prepared to be used in **Google's Colab environment**
+-   **Added context**:
+    -   The file **related_channels.csv** with the names of the related channels has been added to the download directory
+    -   The **log_download.csv** file has been added to the JSON directory of each channel. For each download, the date of the download, the most recent message number, and the number of downloaded messages are stored in this file. This allows channels to be updated with the latest messages automatically without using the **--min-id** parameter, which has been removed.
+    -   For **snowball downloading**, context is saved in a file **{channel}\_n2_log.csv** with the operations carried out by the channels in order to resume the download at the point it left off after an interruption
+    -   To **download a group** of channels, context is saved in a file **{group}\_log.csv** with the operations carried out by the channels in order to resume the download at the point it left off after an interruption
+    -   In the root directory of the data, two files have been added:
+        -   **collected_channels_all.csv**: contains all the downloaded channels.
+        -   **related_channel_all.csv**: includes all channels related to the downloaded channels. These channels may appear in multiple datasets, which is why we also store the number of times they appear in other downloads and the directories where they can be found.
+
+### Colab environemt
+
+This fork includes a notebook to run these scripts in the colab environment.
+
+Requirements:
+
+-   Have a Google account
+-   Have a Telegram account
+-   Create an App in Telegram <https://my.telegram.org/auth?to=apps> and follow the steps to obtain the Id and API KEY
+-   Fill the telegram-tracker configuration file (config/config.ini) with the App data
+-   Upload the repository to drive
+-   Open **telegram-tracker.ipynb** in the colab environment (clicking on the notebook will open it in the environment)
+
+The **telegram-tracker.ipynb** notebook will mount drive so that the scripts can be executed from there
+
+### Local enviroment
+
+This tool connects to Telegram's API. It generates JSON files containing channel's data, including channel's information and posts. You can search for a specific channel, or a set of channels provided in a text file (one channel per line.)
+
+You can access it in command mode, but with the **menu.py** script you can download in a controlled way
+
+-   A channel
+
+-   Snowball from a channel
+
+-   A group of channels
+
+**Software required**
+
+-   [Python 3.x](https://www.python.org/)
+-   [Telegram API credentials](https://my.telegram.org/auth?to=apps)
+    -   Telegram account
+    -   App `api_id`
+    -   App `api_hash`
+
+**Python required libraries**
+
+-   [Telethon](https://docs.telethon.dev/en/stable/)
+-   [Pandas](https://pandas.pydata.org/)
+-   [Openpyxl](https://openpyxl.readthedocs.io/en/stable/)
+-   [tqdm](https://tqdm.github.io/)
+-   [Networkx](https://networkx.org/)
+-   [Matplotlib](https://matplotlib.org/)
+-   [Louvain Community Detection](https://github.com/taynaud/python-louvain)
+
+## Installing
+
+-   **Via git clone**
 
 ```         
-dir_raiz ----+-----datos      # Cada dataset en un directorio independiente
-             |
-             +-----notebooks  # Se guardan los notebooh en R
-      
+https://github.com/congosto/telegram-tracker-t-hoarder_tg.git
 ```
 
-Los datos descargados con telegram-tracker se copiarán o descargarán de drive, a un directorio creado debajo del directorio datos.
+This will create a directory called `telegram-tracker` which contains the Python scripts. Cloning allows you to easily upgrade and switch between available releases.
 
-Si se opta por otra forma de organizar los datos, los notebooks tendrán que ser modificados en la casilla de "Entorno de Trabajo"
+-   **From the github download button**
 
-## Requisitos
+Download the ZIP file from github and use your favorite zip utility to unpack the file `telegram-tracker-t-hoarder_tg.zip` on your preferred location.
 
-Obtener los datos de los canales Telegram mediante la herramienta telegram-tracker.
+**After cloning or downloding the repository, install the libraries from `requirements.txt`.**
 
-En este [repositorio está disponible un fork](https://github.com/congosto/telegram-tracker-t-hoarder_tg) al que se le ha añadido un cuaderno que permite ejecutarlo en el entorno colab de Google.
+```         
+pip install -r requirements.txt
+```
 
-## Descripción de los notebooks
+or
 
-Estos **notebook** analizan y visualizión los datos descargados de Telegram con telegram_tracker.
+```         
+pip3 install -r requirements.txt
+```
 
-Se recomienda ejecutar lo cuadernos en Rstudio en modo Visual para que sean más legibles y tengamos un índice de los chunks ![modo visual](https://github.com/congosto/congosto.github.io/raw/master/modo_visual.png)
+**Once you obtain an API ID and API hash on my.telegram.org, populate the `config/config.ini` file with the described values.**
 
-El análisis se puede realizar en dos ciclos:
+``` ini
 
--   **Ciclo simplificado**: los datos se pueden visualizar directamente. Es una forma muy rápida conocer la estructura del dataset, aunque no se podrán generar todas las gráficas por falta de datos.
+[Telegram API credentials]
+api_id = api_id
+api_hash = api_hash
+phone = phone
+```
 
--   **Ciclo completo** : se procederá a su análisis de red con la herramienta Gephi, que entre otras funciones permite la clasificación de los canales según sus conexiones. Esta clasificación se puede incorporar a los mensajes, permitiendo generar todas las gráficas.
+*Note: Your phone must be included to authenticate for the first time. Use the format +\<code\>\<number\> (e.g., +19876543210). Telegram API will send you a code via Telegram app that you will need to include.*
 
-### Ciclo simplificado
+<br />
 
-Es sencillo y rápido. En solo dos pasos podemos averiguar aspectos importantes de la propagación
+------------------------------------------------------------------------
 
-![Ciclo Análisis simplificado](https://github.com/congosto/congosto.github.io/raw/master/ciclo_simplificado_t-hoarder-tg.JPG)
+# Example usage by commands
 
--   Fase 1: notebooks de descarga de tweets
+## `main.py`
 
-    -   Descarga de los canales con telegram-tracker.
-    -   Copiar o mover la descarga del canal o canales a un directorio creado debajo del directorio "datos"
+This Python script will connect to Telegram's API and handle your API request.
 
--   Fase 2: Notebooks de visualización
+### Options
 
-    -   Visualizar los datos con tg_viz_channels.Rmd
-    -   Extraer metadatos con tg_summarize_channels.Rmd
+-   `--telegram-channel` Specifies Telegram Channel to download data from.
+-   `--limit-download-to-channel-metadata` Will collect channels metadata only, not channel's messages. (default = False)
+-   `--output, -o` Specifies a folder to save collected data. If not given, script will generate a default folder called `./output/data`
 
-### Ciclo completo:
+<br />
 
-Es más elaborado pero permite un análisis en profundidad de la propagación al tener en cuenta los datos del análisis de red.
+### Structure of output data
 
-![Ciclo Análisis completo](https://github.com/congosto/congosto.github.io/raw/master/ciclo_ARS__t-hoarder-tg.JPG)
+```         
+â”œâ”€â”€ðŸ—‚ output
+|   â””â”€â”€ðŸ—‚ data
+|       â””â”€â”€ðŸ—‚ <channel_name>
+|           â””â”€â”€<channel_name>.json
+|           â””â”€â”€<channel_name>_messages.json
+|       â””â”€â”€chats.txt // TM channels, groups, or users' IDs found in data.
+|       â””â”€â”€collected_chats.csv // TM channels or groups found in data (e.g., forwards)
+|       â””â”€â”€collected_chats.xlsx // TM channels or groups found in data (e.g., forwards)
+|       â””â”€â”€counter.csv // TM channels, groups or users found in data (e.g., forwards)
+|       â””â”€â”€user_exceptions.txt // From collected_chats, these are mostly TM users' which 
+|                                   metadata was not possible to retrieve via the API
+|       â””â”€â”€msgs_dataset.csv // Posts and messages from the requested channels
+```
 
--   Fase 1: notebooks de descarga de tweets
+<br />
 
-    -   Descarga de los canales con telegram-tracker.
-    -   Copiar o mover la descarga del canal o canales a un directorio creado debajo del directorio "datos"
+## **Examples**
 
--   Fase 2: notebook de generación de un fichero gdf para gephi
+<br />
 
-    -   tg_summarize_channels.Rmd obtiene de los datos descargados un fichero gdf que describe los nodos (canales) y las conexiones por forward
+### **Basic request**
 
--   Fase 3: Análisis de red en Gephi, con cálculo de la modularidad. Se exportarán de los datos de los nodos a un fichero csv
+```         
+python main.py --telegram-channel channelname`
+```
 
--   Fase 4: notebook para la incorporación de la clasificación de usuarios de gephi a los tweets
+**Expected output**
 
-    -   tg_classify_msgs.Rmd clasifica los mensajes en función de la clasificación de usuarios de Gephi
+-   Files of collected channels:
+    -   chats.txt
+    -   collected_chats.csv
+    -   user_exceptions.txt
+    -   counter.csv
+    -   collected_chanels
+-   A new folder: <channel_name> containing
+    -   A JSON file containing channel's profile metadata
+    -   A JSON file containing posts from the requested channel
+    -   log_downloads.csv
 
--   Fase 5: Notebooks de visualización
+<br />
 
-    -   Visualizar los datos con tg_viz_channels.Rmd para visualizar propagación de mensajes
+### **Request using a text file containing a set of channels**
 
-### Funciones
+Download the channels one by one with the same output directory
 
-Se incluyen un conjunto de ficharos en R con las funciones compartidas por los notebooks. Las funciones permiten que no haya código duplicado y que los cuadernos sean más legibles. Estas son las funciones:
+```         
+for chanel in channels:
+   python main.py  --telegram-channel channel --output './path/to/channels'
+   build-datasets.py --telegram-channel channel --data-path './path/to/channels'
+```
 
--   tg_share_functions.R contiene unas funciones básicas utilizadas por todos los notebooks
--   tg_share_functions_viz.R contiene unas funciones básicas para visualización
--   tg_share_functions_viz_channels.R contiene las funciones específicas para la visualización de propagación
+**Expected output**
+
+-   Files of collected channels:
+    -   chats.txt
+    -   collected_chats.csv
+    -   user_exceptions.txt
+    -   counter.csv
+    -   collected_chanels
+-   New folders - based on the number of requested channels: <channel_name> containing
+    -   A JSON file containing channel's profile metadata
+    -   A JSON file containing posts from the requested channel
+    -   log_downloads.csv
+
+These examples will retrieve all posts available through the API from the requested channel. If you want to collect channel's information only, without posts, you can run:
+
+<br />
+
+### **Limit download to channel's metadata only**
+
+```         
+python main.py --telegram-channel channelname --limit-download-to-channel-metadata
+```
+
+<br />
+
+### **Updating channel's data**
+
+It is automatic because it has context
+
+```         
+python main.py --telegram-channel channelname --output './path/to/channels'
+```
+
+**Expected output**
+
+-   Files of collected channels:
+    -   chats.txt
+    -   collected_chats.csv
+    -   user_exceptions.txt
+    -   counter.csv
+    -   collected_chanels
+-   A new folder: <channel_name> containing
+    -   A JSON file containing channel's profile metadata
+    -   A JSON file containing posts from the requested channel
+    -   log_downloads.csv
+
+<br />
+
+### **Specify output folder**
+
+The script allows you to specify a specific output directory to save collected data. The sxcript will create those folders in case do not exist.
+
+```         
+python main.py --telegram-channel channelname --output ./path/to/chosen/directory`
+```
+
+The expected output is the same a described above but data will be save using the chosen directory.
+
+<br />
+
+------------------------------------------------------------------------
+
+## `build-dataset.py`
+
+This Python script reads a channel the collected files and creates a new dataset containing messages from the requested channels. By default, the created dataset will be located in the `output` folder.
+
+If you provided a specific directory to save collected data, you need to provide the same path to use this script.
+
+### Options
+
+-   `-telegram-channel channel --data-path` Path were data is located. Will use `./output/data` if not given.
+
+If a specific directory was not provided in `main.py`, run:
+
+```         
+python build-dataset.py
+```
+
+If you provided a specific directory using the option `--output` in `main.py`, run:
+
+```         
+python build-dataset.py --data-path ./path/to/chosen/directory
+```
+
+These option will create the above-mentioned dataset: `msgs_dataset.csv`, a file containing posts and messages from the requested channels.
+
+<br />
+
+------------------------------------------------------------------------
+
+## `channels-to-network.py`
+
+This Python script builds a network graph. By default, the file will be located in the `output` folder. The script also saves a preliminary graph: `network.png` using the modules matplotlib, networkx, and python-louvain, which implements community detection. You can import the GEFX Graph File using different softwares, including Gephi.
+
+### Options
+
+-   `--data-path` Path were data is located. Will use `./output/data` if not given.
+
+If a specific directory was not provided in `main.py`, run:
+
+```         
+python channels-to-network.py
+```
+
+If you provided a specific directory using the option `--output` in `main.py`, run:
+
+```         
+python channels-to-network.py --data-path ./path/to/chosen/directory
+```
