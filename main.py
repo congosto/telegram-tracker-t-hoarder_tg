@@ -320,7 +320,7 @@ if entity_attrs:
 				'''
 				get most recent msg and show post downloaded
 				'''
-				#num_msgs = num_msgs + len(posts.messages)
+				num_msgs = num_msgs + len(posts.messages)
 				#if os.name == 'nt':
 				#	print(f'\x1b[2K{num_msgs} downloaded', end='\r')
 				#	#print(f'\x1b{num_msgs} downloaded', end='\r')
